@@ -1,98 +1,203 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API de Priorizacao de Reposicao de Estoque
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-E83524?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Microservico backend desenvolvido em NestJS para gerenciar autopecas em estoque e calcular, de forma automatica, a prioridade de reposicao.
 
-## Description
+## Contexto do Desafio
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Em um distribuidor de autopecas, e necessario decidir diariamente quais itens devem ser repostos primeiro, considerando:
 
-## Project setup
+- Estoque limitado
+- Capital de giro limitado
+- Diferentes niveis de criticidade
+- Padroes de venda distintos
+- Tempo de reposicao de fornecedor
 
-```bash
-$ npm install
+Este projeto resolve o problema com um motor de priorizacao baseado em regras de negocio objetivas.
+
+## Objetivos
+
+1. Gerenciar pecas em estoque (CRUD parcial implementado)
+2. Calcular automaticamente prioridade de reposicao
+3. Ordenar pecas por urgencia
+
+## Tecnologias Utilizadas
+
+- NestJS
+- TypeScript
+- PostgreSQL
+- TypeORM
+- Class Validator + Class Transformer
+- Swagger (OpenAPI)
+- Jest (testes unitarios e cobertura)
+- Docker e Docker Compose
+- ESLint + Prettier + EditorConfig + Husky
+
+## Regras de Negocio
+
+1. Consumo esperado durante o lead time
+
+```txt
+expectedConsumption = averageDailySales * leadTimeDays
 ```
 
-## Compile and run the project
+2. Estoque projetado
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```txt
+projectedStock = currentStock - expectedConsumption
 ```
 
-## Run tests
+3. Necessidade de reposicao
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```txt
+needsRestock quando projectedStock < minimumStock
 ```
 
-## Deployment
+4. Score de urgencia
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```txt
+urgencyScore = (minimumStock - projectedStock) * criticalityLevel
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Quanto maior o `urgencyScore`, maior a prioridade.
 
-## Resources
+### Criterios de Desempate
 
-Check out a few resources that may come in handy when working with NestJS:
+1. Maior `criticalityLevel`
+2. Maior `averageDailySales`
+3. Ordem alfabetica por `name`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Estrutura da Entidade
 
-## Support
+```json
+{
+  "id": "uuid",
+  "name": "Filtro de Oleo X",
+  "category": "engine",
+  "currentStock": 15,
+  "minimumStock": 20,
+  "averageDailySales": 4,
+  "leadTimeDays": 5,
+  "unitCost": 18.5,
+  "criticalityLevel": 3
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Endpoints Disponiveis
 
-## Stay in touch
+Prefixo global da API: `/api`
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Metodo  | Rota                      | Descricao                           |
+| :------ | :------------------------ | :---------------------------------- |
+| `POST`  | `/api/parts`              | Cria uma peca                       |
+| `GET`   | `/api/parts`              | Lista pecas com paginacao e filtros |
+| `GET`   | `/api/parts/:id`          | Busca peca por ID                   |
+| `PATCH` | `/api/parts/:id`          | Atualiza uma peca                   |
+| `GET`   | `/api/restock/priorities` | Lista prioridades de reposicao      |
 
-## License
+## Filtros de Listagem
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Na rota `GET /api/parts`, e possivel usar:
+
+- `page` (default: 1)
+- `limit` (default: 10)
+- `orderBy`
+- `orderDirection` (`ASC` ou `DESC`)
+- `category`
+- `criticalityLevel`
+- `needsRestock` (`true` ou `false`)
+
+## Como Rodar o Projeto
+
+### Pre-requisitos
+
+- Node.js 20+
+- npm 10+
+- Docker e Docker Compose
+
+### 1. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 2. Configurar ambiente
+
+Crie ou ajuste o arquivo `.env` (ja existe `.env.example` como referencia):
+
+```env
+PORT=3000
+NODE_ENV=development
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=stock_replenishment
+```
+
+### 3. Subir banco com Docker
+
+```bash
+docker-compose up -d postgres
+```
+
+### 4. Criar estrutura e dados iniciais
+
+```bash
+npm run db:seed
+```
+
+### 5. Subir API em desenvolvimento
+
+```bash
+npm run start:dev
+```
+
+API: `http://localhost:3000/api`
+
+Swagger: `http://localhost:3000/docs`
+
+## Execucao 100% via Docker
+
+Se preferir subir API + banco em containers:
+
+```bash
+docker-compose up -d --build
+```
+
+## Scripts Uteis
+
+```bash
+# build
+npm run build
+
+# start
+npm run start
+npm run start:dev
+npm run start:prod
+
+# banco
+npm run db:migrate
+npm run db:populate
+npm run db:seed
+```
+
+## Testes
+
+```bash
+# testes unitarios
+npm test
+
+# modo watch
+npm run test:watch
+
+# cobertura
+npm run test:cov
+```
