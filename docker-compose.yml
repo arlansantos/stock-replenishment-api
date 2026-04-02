@@ -1,4 +1,22 @@
+version: '3.9'
+
 services:
+  app:
+    build: .
+    container_name: stock_replenishment_api
+    ports:
+      - '3000:3000'
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: stock_replenishment_db
@@ -10,6 +28,13 @@ services:
       - '${DB_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
