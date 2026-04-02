@@ -1,0 +1,22 @@
+# dependências
+node_modules
+
+# build
+dist
+coverage
+
+# configs e env
+.env
+.env.*
+
+# logs
+*.log
+
+# docker
+Dockerfile
+docker-compose.yml
+
+# lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
