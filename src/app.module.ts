@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { appConfig, databaseConfig } from './config';
 import { DatabaseModule } from './database/database.module';
+import { PartsModule } from './parts/parts.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { DatabaseModule } from './database/database.module';
       },
     }),
     DatabaseModule,
+    PartsModule,
   ],
 })
 export class AppModule {}
